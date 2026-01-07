@@ -15,9 +15,13 @@ final class LaravelNewsServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             LaravelNews::class,
-            function () {
-                /** @var string $token */
-                $token = config('laravel-news.token') ?? '';
+            function (array $app): LaravelNews {
+                /**
+                 * @var string $token
+                 *
+                 * @phpstan-ignore-next-line
+                 */
+                $token = $app['config']->get('laravel-news.api_token');
 
                 return new LaravelNews($token);
             }
@@ -27,7 +31,7 @@ final class LaravelNewsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../config/laravel-news.php' => config_path('laravel-news.php'),
+            __DIR__.'/../config/laravel-news.php' => config_path('laravel-news.php'), // @phpstan-ignore-line
         ], 'laravel-news');
     }
 }
