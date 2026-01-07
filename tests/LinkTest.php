@@ -5,6 +5,11 @@ declare(strict_types=1);
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Enums\LinkCategory;
 
+it('has correct enum values', function () {
+    expect(LinkCategory::Tutorial->value)->toBe('Tutorial');
+    expect(LinkCategory::Package->value)->toBe('Package');
+});
+
 it('converts link DTO to array', function () {
     $link = new Link(
         title: 'Test Title',
