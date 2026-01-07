@@ -1,0 +1,27 @@
+{
+    "name": "achyutn/laravel-news-sdk",
+    "description": "A simple PHP SDK for submitting links to Laravel News.",
+    "type": "library",
+    "keywords": ["laravel", "news", "sdk", "api", "links"],
+    "require": {
+        "php": ">=8.0",
+        "illuminate/support": "^12.0",
+        "illuminate/http": "^12.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Achyutn\\LaravelNewsSdk\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "achyutkneupane",
+            "email": "achyutkneupane@gmail.com",
+            "homepage": "https://achyut.com.np",
+            "role": "Maintainer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
