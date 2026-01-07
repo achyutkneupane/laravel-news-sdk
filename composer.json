@@ -20,6 +20,16 @@
             "AchyutN\\LaravelNews\\": "src/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AchyutN\\LaravelNews\\Providers\\LaravelNewsServiceProvider"
+            ],
+            "aliases": {
+                "LaravelNews": "AchyutN\\LaravelNews\\Facades\\LaravelNews"
+            }
+        }
+    },
     "authors": [
         {
             "name": "achyutkneupane",
