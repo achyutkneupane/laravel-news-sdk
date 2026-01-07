@@ -34,8 +34,7 @@
         "lint": [
             "rector",
             "pint",
-            "phpstan",
-            "test"
+            "phpstan"
         ],
         "test:type-coverage": "pest",
         "test:lint": [

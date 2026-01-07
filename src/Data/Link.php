@@ -11,7 +11,12 @@ use AchyutN\LaravelNews\Enums\LinkCategory;
  *     title: string,
  *     url: string,
  *     category: LinkCategory
- *  }
+ * }
+ * @phpstan-type LinkArray array{
+ *     title: string,
+ *     url: string,
+ *     category: string
+ * }
  */
 final class Link
 {
@@ -23,13 +28,13 @@ final class Link
         //
     }
 
-    /** @return LinkDTO */
+    /** @return LinkArray */
     public function toArray(): array
     {
         return [
             'title' => $this->title,
             'url' => $this->url,
-            'category' => $this->category,
+            'category' => $this->category->value,
         ];
     }
 }

@@ -22,8 +22,7 @@ final class LaravelNews
     /**
      * Send a POST request
      *
-     * @param Link $link
-     * @return array
+     * @return array<string, string|int>
      *
      * @throws LaravelNewsException
      */
@@ -44,12 +43,8 @@ final class LaravelNews
                 );
             }
 
-            $data = $response->json();
-            if (! is_array($data)) {
-                throw LaravelNewsException::invalidResponse($response->body());
-            }
-
-            return $data;
+            /** @var array<string, string|int> */
+            return $response->json();
         } catch (Throwable $throwable) {
             throw new LaravelNewsException(
                 'Unexpected error while performing POST request.',
