@@ -7,11 +7,6 @@ namespace AchyutN\LaravelNews\Data;
 use AchyutN\LaravelNews\Enums\LinkCategory;
 
 /**
- * @phpstan-type LinkDTO array{
- *     title: string,
- *     url: string,
- *     category: LinkCategory
- * }
  * @phpstan-type LinkArray array{
  *     title: string,
  *     url: string,
