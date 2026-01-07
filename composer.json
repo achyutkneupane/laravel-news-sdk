@@ -4,14 +4,20 @@
     "type": "library",
     "keywords": ["laravel", "news", "sdk", "api", "links"],
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "illuminate/support": "^12.0",
         "illuminate/http": "^12.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.27",
+        "pestphp/pest": "^3.8",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.3"
     },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Achyutn\\LaravelNewsSdk\\": "src/"
+            "AchyutN\\LaravelNews\\": "src/"
         }
     },
     "authors": [
@@ -23,5 +29,28 @@
         }
     ],
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "scripts": {
+        "lint": [
+            "rector",
+            "pint",
+            "phpstan"
+        ],
+        "test:type-coverage": "pest",
+        "test:lint": [
+            "pint --test"
+        ],
+        "test:unit": "# pest --parallel --coverage --min=90",
+        "test": [
+            "@test:lint",
+            "@test:type-coverage",
+            "@test:unit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }
