@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelNews;
 
+use AchyutN\LaravelNews\Data\LaravelNewsItem;
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
 use Illuminate\Support\Facades\Http;
-use JsonException;
 use Throwable;
 
+/**
+ * @phpstan-import-type LaravelNewsItemArray from LaravelNewsItem
+ */
 final class LaravelNews
 {
     private const BASE_URL = 'https://laravel-news.com/api';
@@ -23,18 +26,16 @@ final class LaravelNews
     /**
      * Send a POST request
      *
-     * @return array<string, string|int>
-     *
      * @throws LaravelNewsException
      */
-    public function post(Link $link): array
+    public function post(Link $link): LaravelNewsItem
     {
-        $postURL = self::BASE_URL.'/links';
         try {
             $response = Http::acceptJson()
+                ->baseUrl(self::BASE_URL)
                 ->withToken($this->token)
                 ->post(
-                    $postURL,
+                    '/links',
                     $link->toArray()
                 );
         } catch (Throwable $throwable) {
@@ -46,11 +47,10 @@ final class LaravelNews
         }
 
         $status = $response->status();
+        /** @phpstan-var array{'data': LaravelNewsItemArray}|array{'message': string, 'errors'?: array<string, mixed>} $json */
+        $json = $response->json();
 
         if ($status >= 400) {
-            /** @var array<string, string|array<string,string>> $json */
-            $json = $response->json();
-
             $errors = array_key_exists('errors', $json) && is_array($json['errors'])
                 ? $json['errors']
                 : [];
@@ -65,14 +65,11 @@ final class LaravelNews
             );
         }
 
-        $data = $response->json();
-        if (! is_array($data)) {
-            throw new LaravelNewsException(
-                'Invalid JSON returned by Laravel News API.',
-                1002
-            );
-        }
+        /** @var LaravelNewsItemArray $jsonItem */
+        $jsonItem = array_key_exists('data', $json) && is_array($json['data'])
+            ? $json['data']
+            : [];
 
-        return $data;
+        return LaravelNewsItem::fromArray($jsonItem);
     }
 }
