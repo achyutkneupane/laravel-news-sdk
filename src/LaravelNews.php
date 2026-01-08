@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelNews;
 
-use AchyutN\LaravelNews\Data\LaravelNewsItem;
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Throwable;
 
 /**
- * @phpstan-import-type LaravelNewsItemArray from LaravelNewsItem
+ * @phpstan-import-type LinkArray from Link
  */
 final class LaravelNews
 {
@@ -20,56 +19,54 @@ final class LaravelNews
     public function __construct(
         private readonly string $token
     ) {
-        //
+        $this->ensureTokenIsPresent();
     }
 
     /**
-     * Send a POST request
+     * Post a new link to Laravel News.
      *
      * @throws LaravelNewsException
      */
-    public function post(Link $link): LaravelNewsItem
+    public function post(Link $link): Link
     {
-        try {
-            $response = Http::acceptJson()
-                ->baseUrl(self::BASE_URL)
-                ->withToken($this->token)
-                ->post(
-                    '/links',
-                    $link->toArray()
-                );
-        } catch (Throwable $throwable) {
-            throw new LaravelNewsException(
-                'Unexpected error while performing POST request.',
-                1000,
-                $throwable
+        $response = Http::acceptJson()
+            ->baseUrl(self::BASE_URL)
+            ->withToken($this->token)
+            ->post(
+                '/links',
+                $link->toPostArray()
             );
+
+        if ($response->failed()) {
+            $this->handleException($response);
         }
 
-        $status = $response->status();
-        /** @phpstan-var array{'data': LaravelNewsItemArray}|array{'message': string, 'errors'?: array<string, mixed>} $json */
-        $json = $response->json();
+        /** @var array{data: LinkArray} $payload */
+        $payload = $response->json();
 
-        if ($status >= 400) {
-            $errors = array_key_exists('errors', $json) && is_array($json['errors'])
-                ? $json['errors']
-                : [];
+        return Link::fromArray($payload['data']);
+    }
 
-            $message = array_key_exists('message', $json) && is_string($json['message'])
-                ? $json['message']
-                : 'Laravel News API returned an error';
-
-            throw new LaravelNewsException(
-                sprintf('%s. Errors: %s', $message, json_encode($errors)),
-                $status
-            );
+    /**
+     * Check if the API token is provided.
+     */
+    private function ensureTokenIsPresent(): void
+    {
+        if (trim($this->token) === '') {
+            throw new LaravelNewsException('API token is required to communicate with Laravel News.');
         }
+    }
 
-        /** @var LaravelNewsItemArray $jsonItem */
-        $jsonItem = array_key_exists('data', $json) && is_array($json['data'])
-            ? $json['data']
-            : [];
+    /**
+     * Handle a failed API response.
+     *
+     * @throws LaravelNewsException
+     */
+    private function handleException(Response $response): never
+    {
+        /** @var string $message */
+        $message = $response->json('message', 'Unexpected error while performing POST request.');
 
-        return LaravelNewsItem::fromArray($jsonItem);
+        throw new LaravelNewsException($message, $response->status());
     }
 }
