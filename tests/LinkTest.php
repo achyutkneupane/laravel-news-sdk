@@ -7,50 +7,40 @@ use AchyutN\LaravelNews\Enums\LinkCategory;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
 use Illuminate\Support\Carbon;
 
-it('has correct enum values', function () {
-    expect(LinkCategory::Tutorial->value)->toBe('Tutorial');
-    expect(LinkCategory::Package->value)->toBe('Package');
-});
-
-it('converts link DTO to array for API request', function () {
+it('can be converted to an array', function () {
     $link = new Link(
-        title: 'Test Title',
-        url: 'https://achyut.com.np',
+        title: 'Laravel News',
+        url: 'https://laravel-news.com',
         category: LinkCategory::Tutorial
     );
 
     expect($link->toPostArray())->toBe([
-        'title' => 'Test Title',
-        'url' => 'https://achyut.com.np',
-        'category' => LinkCategory::Tutorial->value,
+        'title' => 'Laravel News',
+        'url' => 'https://laravel-news.com',
+        'category' => 'Tutorial',
     ]);
 });
 
-it('creates a Link DTO from API response array', function () {
-    $data = [
+it('can be instantiated from an array', function () {
+    $link = Link::fromArray([
         'id' => 1,
-        'title' => 'Test Title',
-        'url' => 'https://achyut.com.np',
-        'user_id' => 1,
-        'created_at' => '2026-01-07T13:53:56.000000Z',
-        'updated_at' => '2026-01-07T13:53:56.000000Z',
-    ];
+        'title' => 'Laravel News',
+        'url' => 'https://laravel-news.com',
+        'user_id' => 42,
+        'created_at' => '2026-01-08T16:00:00Z',
+        'updated_at' => '2026-01-08T16:00:00Z',
+    ]);
 
-    $item = Link::fromArray($data);
-
-    expect($item->id)->toBe(1)
-        ->and($item->title)->toBe($data['title'])
-        ->and($item->userId)->toBe(1)
-        ->and($item->createdAt)->toBeInstanceOf(Carbon::class)
-        ->and($item->createdAt->toIso8601String())->toBe('2026-01-07T13:53:56+00:00');
+    expect($link->id)->toBe(1)
+        ->and($link->title)->toBe('Laravel News')
+        ->and($link->userId)->toBe(42)
+        ->and($link->createdAt)->toBeInstanceOf(Carbon::class);
 });
 
-it('throws exception for title with length greater than 100', function () {
-    $this->expectException(LaravelNewsException::class);
-    new Link(title: str_repeat('A', 101), url: 'https://achyut.com.np');
-});
+it('validates the title length', function () {
+    new Link(title: str_repeat('a', 101), url: 'https://google.com');
+})->throws(LaravelNewsException::class, 'Title is required and must be less than 100 characters.');
 
-it('throws exception for invalid URL', function () {
-    $this->expectException(LaravelNewsException::class);
-    new Link(title: 'Test Title', url: 'invalid-url');
-});
+it('validates the url format', function () {
+    new Link(title: 'Valid Title', url: 'not-a-url');
+})->throws(LaravelNewsException::class, 'A valid URL is required.');

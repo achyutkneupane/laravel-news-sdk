@@ -6,6 +6,7 @@ namespace AchyutN\LaravelNews;
 
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -23,7 +24,7 @@ final class LaravelNews
     }
 
     /**
-     * Send a POST request
+     * Post a new link to Laravel News.
      *
      * @throws LaravelNewsException
      */
@@ -36,7 +37,20 @@ final class LaravelNews
                 ->post(
                     '/links',
                     $link->toPostArray()
+                )
+                ->throw(
+                    function (Response $response, Throwable $throwable): never {
+                        /** @var string $message */
+                        $message = $response->json('message', 'Laravel News API error');
+
+                        throw new LaravelNewsException($message, $response->status(), $throwable);
+                    }
                 );
+
+            /** @var array{data: LinkArray} $payload */
+            $payload = $response->json();
+
+            return Link::fromArray($payload['data']);
         } catch (Throwable $throwable) {
             throw new LaravelNewsException(
                 'Unexpected error while performing POST request.',
@@ -44,31 +58,5 @@ final class LaravelNews
                 $throwable
             );
         }
-
-        $status = $response->status();
-        /** @phpstan-var array{'data': LinkArray}|array{'message': string, 'errors'?: array<string, mixed>} $json */
-        $json = $response->json();
-
-        if ($status >= 400) {
-            $errors = array_key_exists('errors', $json) && is_array($json['errors'])
-                ? $json['errors']
-                : [];
-
-            $message = array_key_exists('message', $json) && is_string($json['message'])
-                ? $json['message']
-                : 'Laravel News API returned an error';
-
-            throw new LaravelNewsException(
-                sprintf('%s. Errors: %s', $message, json_encode($errors)),
-                $status
-            );
-        }
-
-        /** @var LinkArray $jsonItem */
-        $jsonItem = array_key_exists('data', $json) && is_array($json['data'])
-            ? $json['data']
-            : [];
-
-        return Link::fromArray($jsonItem);
     }
 }
