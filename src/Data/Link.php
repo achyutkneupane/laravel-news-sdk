@@ -10,17 +10,20 @@ use Illuminate\Support\Carbon;
 
 /**
  * @phpstan-type LinkArray array{
- * id?: int,
+ * id?: int|null,
  * title: string,
  * url: string,
- * category?: string,
- * user_id?: int,
- * created_at?: string,
- * updated_at?: string
+ * category?: string|null,
+ * user_id?: int|null,
+ * created_at?: string|null,
+ * updated_at?: string|null
  * }
  */
 final class Link
 {
+    /**
+     * Create a new Link instance.
+     */
     public function __construct(
         public string $title,
         public string $url,
@@ -30,17 +33,11 @@ final class Link
         public ?Carbon $createdAt = null,
         public ?Carbon $updatedAt = null,
     ) {
-        if ($this->title === '' || $this->title === '0' || mb_strlen($this->title) > 100) {
-            throw new LaravelNewsException('Title is required and must be less than 100 characters.');
-        }
-
-        if ($this->url === '' || $this->url === '0' || ! filter_var($this->url, FILTER_VALIDATE_URL)) {
-            throw new LaravelNewsException('A valid URL is required.');
-        }
+        $this->validate();
     }
 
     /**
-     * Create DTO from API response data array
+     * Create a DTO instance from the given array.
      *
      * @param  LinkArray  $data
      */
@@ -50,15 +47,17 @@ final class Link
             title: $data['title'],
             url: $data['url'],
             category: isset($data['category']) ? LinkCategory::from($data['category']) : null,
-            id: isset($data['id']) ? (int) $data['id'] : null,
-            userId: isset($data['user_id']) ? (int) $data['user_id'] : null,
+            id: $data['id'] ?? null,
+            userId: $data['user_id'] ?? null,
             createdAt: isset($data['created_at']) ? Carbon::parse($data['created_at']) : null,
             updatedAt: isset($data['updated_at']) ? Carbon::parse($data['updated_at']) : null,
         );
     }
 
     /**
-     * @return array{title: string, url: string, category: string|null}
+     * Get the instance as an array for the API.
+     *
+     * @return array<string, mixed>
      */
     public function toPostArray(): array
     {
@@ -67,5 +66,19 @@ final class Link
             'url' => $this->url,
             'category' => $this->category?->value,
         ];
+    }
+
+    /**
+     * Validate the DTO state.
+     */
+    private function validate(): void
+    {
+        if (trim($this->title) === '' || mb_strlen($this->title) > 100) {
+            throw new LaravelNewsException('Title is required and must be less than 100 characters.');
+        }
+
+        if (! filter_var($this->url, FILTER_VALIDATE_URL)) {
+            throw new LaravelNewsException('A valid URL is required.');
+        }
     }
 }

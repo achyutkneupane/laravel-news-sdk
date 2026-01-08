@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelNews;
 
-use AchyutN\LaravelNews\Data\LaravelNewsItem;
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * @phpstan-import-type LaravelNewsItemArray from LaravelNewsItem
+ * @phpstan-import-type LinkArray from Link
  */
 final class LaravelNews
 {
@@ -28,7 +27,7 @@ final class LaravelNews
      *
      * @throws LaravelNewsException
      */
-    public function post(Link $link): LaravelNewsItem
+    public function post(Link $link): Link
     {
         try {
             $response = Http::acceptJson()
@@ -36,7 +35,7 @@ final class LaravelNews
                 ->withToken($this->token)
                 ->post(
                     '/links',
-                    $link->toArray()
+                    $link->toPostArray()
                 );
         } catch (Throwable $throwable) {
             throw new LaravelNewsException(
@@ -47,7 +46,7 @@ final class LaravelNews
         }
 
         $status = $response->status();
-        /** @phpstan-var array{'data': LaravelNewsItemArray}|array{'message': string, 'errors'?: array<string, mixed>} $json */
+        /** @phpstan-var array{'data': LinkArray}|array{'message': string, 'errors'?: array<string, mixed>} $json */
         $json = $response->json();
 
         if ($status >= 400) {
@@ -65,11 +64,11 @@ final class LaravelNews
             );
         }
 
-        /** @var LaravelNewsItemArray $jsonItem */
+        /** @var LinkArray $jsonItem */
         $jsonItem = array_key_exists('data', $json) && is_array($json['data'])
             ? $json['data']
             : [];
 
-        return LaravelNewsItem::fromArray($jsonItem);
+        return Link::fromArray($jsonItem);
     }
 }
