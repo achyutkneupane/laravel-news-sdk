@@ -20,7 +20,7 @@ final class LaravelNews
     public function __construct(
         private readonly string $token
     ) {
-        //
+        $this->ensureTokenIsPresent();
     }
 
     /**
@@ -46,6 +46,16 @@ final class LaravelNews
         $payload = $response->json();
 
         return Link::fromArray($payload['data']);
+    }
+
+    /**
+     * Check if the API token is provided.
+     */
+    private function ensureTokenIsPresent(): void
+    {
+        if (trim($this->token) === '') {
+            throw new LaravelNewsException('API token is required to communicate with Laravel News.');
+        }
     }
 
     /**
