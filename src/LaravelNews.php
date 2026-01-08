@@ -30,33 +30,34 @@ final class LaravelNews
      */
     public function post(Link $link): Link
     {
-        try {
-            $response = Http::acceptJson()
-                ->baseUrl(self::BASE_URL)
-                ->withToken($this->token)
-                ->post(
-                    '/links',
-                    $link->toPostArray()
-                )
-                ->throw(
-                    function (Response $response, Throwable $throwable): never {
-                        /** @var string $message */
-                        $message = $response->json('message', 'Laravel News API error');
-
-                        throw new LaravelNewsException($message, $response->status(), $throwable);
-                    }
-                );
-
-            /** @var array{data: LinkArray} $payload */
-            $payload = $response->json();
-
-            return Link::fromArray($payload['data']);
-        } catch (Throwable $throwable) {
-            throw new LaravelNewsException(
-                'Unexpected error while performing POST request.',
-                1000,
-                $throwable
+        $response = Http::acceptJson()
+            ->baseUrl(self::BASE_URL)
+            ->withToken($this->token)
+            ->post(
+                '/links',
+                $link->toPostArray()
             );
+
+        if ($response->failed()) {
+            $this->handleException($response);
         }
+
+        /** @var array{data: LinkArray} $payload */
+        $payload = $response->json();
+
+        return Link::fromArray($payload['data']);
+    }
+
+    /**
+     * Handle a failed API response.
+     *
+     * @throws LaravelNewsException
+     */
+    private function handleException(Response $response): never
+    {
+        /** @var string $message */
+        $message = $response->json('message', 'Unexpected error while performing POST request.');
+
+        throw new LaravelNewsException($message, $response->status());
     }
 }
