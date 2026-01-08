@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelNews\Providers;
 
+use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
 use AchyutN\LaravelNews\LaravelNews;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
@@ -24,7 +25,9 @@ final class LaravelNewsServiceProvider extends ServiceProvider
                 /**
                  * @var string $token
                  */
-                $token = $config->get('laravel-news.api_token');
+                $token = $config->get('laravel-news.token');
+
+                $this->ensureTokenIsPresent($token);
 
                 return new LaravelNews($token);
             }
@@ -37,6 +40,13 @@ final class LaravelNewsServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../../config/laravel-news.php' => $this->app->configPath('laravel-news.php'),
             ], 'laravel-news');
+        }
+    }
+
+    private function ensureTokenIsPresent(string $token): void
+    {
+        if (trim($token) === '') {
+            throw new LaravelNewsException('API token is required to communicate with Laravel News.');
         }
     }
 }
