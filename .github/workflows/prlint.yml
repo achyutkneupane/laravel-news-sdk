@@ -1,6 +1,7 @@
 name: "Lint & Test PR"
 
-on: [push, pull_request]
+on:
+    pull_request_target:
 
 permissions:
     pull-requests: read
