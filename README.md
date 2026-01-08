@@ -11,7 +11,7 @@ A simple PHP SDK for submitting links to [Laravel News](https://laravel-news.com
 
 You can install the package via Composer:
 
-```bash
+```sh
 composer require achyutn/laravel-news-sdk
 ```
 
@@ -19,7 +19,7 @@ composer require achyutn/laravel-news-sdk
 
 After installing, publish the configuration file:
 
-```bash
+```sh
 php artisan vendor:publish --tag="laravel-news"
 ```
 
@@ -27,7 +27,7 @@ This will create a `config/laravel-news.php` file.
 
 Next, set your Laravel News API token in your `.env` file:
 
-```env
+```sh
 LARAVEL_NEWS_TOKEN=your-api-token-here
 ```
 
@@ -43,14 +43,16 @@ use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Enums\LinkCategory;
 
 $link = new Link(
-    title: 'My Awesome Package',
-    url: 'https://github.com/achyutn/my-package',
+    title: 'Filament Log Viewer',
+    url: 'https://packagist.org/packages/achyutn/filament-log-viewer',
     category: LinkCategory::Package
 );
 
 $item = LaravelNews::post($link);
 
-// $item is a LaravelNewsItem with id, title, url, userId, createdAt, updatedAt
+// The item is a Link DTO populated with server-side data
+echo $item->id;
+echo $item->createdAt;
 ```
 
 ### Using Dependency Injection
@@ -66,7 +68,10 @@ class SomeController
 
     public function submitLink()
     {
-        // ... create $link ...
+        $link = new Link(
+            title: 'Cool Tutorial',
+            url: 'https://example.com/tutorial'
+        );
 
         $item = $this->laravelNews->post($link);
     }
@@ -79,29 +84,33 @@ class SomeController
 
 The main class for interacting with the Laravel News API.
 
-#### `post(Link $link): LaravelNewsItem`
+#### `post(Link $link): Link`
 
-Submits a link to Laravel News.
+Submits a link and returns a populated Link instance.
 
-- **Parameters**: `Link $link` - The link data to submit
-- **Returns**: `LaravelNewsItem` - The created item from the API
-- **Throws**: `LaravelNewsException` - On API errors or network issues
+- **Throws**: `AchyutN\LaravelNews\Exceptions\LaravelNewsException` if the API returns an error or the token is missing.
 
 ### Link
 
-Data Transfer Object for link submissions.
+The core Data Transfer Object for submitting links.
 
-```php
-new Link(
-    string $title,
-    string $url,
-    LinkCategory $category
-);
-```
+Properties:
 
-#### `toArray(): array`
+- `string $title` (Required, max 100 chars)
+- `string $url` (Required, valid URL)
+- `LinkCategory|null $category`
+- `int|null $id` (Populated after response)
+- `int|null $userId` (Populated after response)
+- `Carbon|null $createdAt`
+- `Carbon|null $updatedAt`
 
-Converts the Link to an array for API submission.
+#### `toPostArray(): array`
+
+Converts the DTO into the format expected by the Laravel News API for submission.
+
+#### `fromArray(array $data): self`
+
+Creates a `Link` item from API response data.
 
 ### LinkCategory
 
@@ -109,22 +118,6 @@ Enum for link categories.
 
 - `LinkCategory::Tutorial`
 - `LinkCategory::Package`
-
-### LaravelNewsItem
-
-Data Transfer Object for API responses.
-
-Properties:
-- `int $id`
-- `string $title`
-- `string $url`
-- `int $userId`
-- `Carbon $createdAt`
-- `Carbon $updatedAt`
-
-#### `fromArray(array $data): self`
-
-Creates a LaravelNewsItem from API response data.
 
 ## Contributing
 

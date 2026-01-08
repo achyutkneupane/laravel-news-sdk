@@ -8,7 +8,6 @@ use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Throwable;
 
 /**
  * @phpstan-import-type LinkArray from Link
