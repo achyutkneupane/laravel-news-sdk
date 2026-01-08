@@ -1,5 +1,7 @@
 # Laravel News SDK
 
+[![Lint & Test PR](https://github.com/achyutkneupane/laravel-news-sdk/actions/workflows/prlint.yml/badge.svg)](https://github.com/achyutkneupane/laravel-news-sdk/actions/workflows/prlint.yml)
+
 A simple PHP SDK for submitting links to [Laravel News](https://laravel-news.com) using their API.
 
 ## Requirements
