@@ -6,6 +6,7 @@ namespace AchyutN\LaravelNews;
 
 use AchyutN\LaravelNews\Data\Link;
 use AchyutN\LaravelNews\Exceptions\LaravelNewsException;
+use Composer\InstalledVersions;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 final readonly class LaravelNews
 {
     private const BASE_URL = 'https://laravel-news.com/api';
+
+    private const USER_AGENT = 'LaravelNewsSDK';
 
     public function __construct(
         private string $token
@@ -29,10 +32,15 @@ final readonly class LaravelNews
      */
     public function post(Link $link): Link
     {
+        $version = InstalledVersions::getPrettyVersion('achyutn/laravel-news-sdk');
+
         $response = Http::acceptJson()
             ->contentType('application/json')
             ->baseUrl(self::BASE_URL)
             ->withToken($this->token)
+            ->withUserAgent(
+                sprintf($version ? '%s/%s' : '%s', self::USER_AGENT, $version)
+            )
             ->post(
                 '/links',
                 $link->toPostArray()
