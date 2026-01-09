@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Http;
 /**
  * @phpstan-import-type LinkArray from Link
  */
-final class LaravelNews
+final readonly class LaravelNews
 {
     private const BASE_URL = 'https://laravel-news.com/api';
 
     public function __construct(
-        private readonly string $token
+        private string $token
     ) {
         $this->ensureTokenIsPresent();
     }
