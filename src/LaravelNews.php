@@ -79,8 +79,8 @@ final readonly class LaravelNews
 
         if ($response->status() === 422 && $response->json('errors')) {
             throw new LaravelNewsException(
-                $message ?? 'Validation failed.',
-                $statusCode
+                $message ?? 'Validation failed for the data.',
+                $statusCode,
             );
         }
 
