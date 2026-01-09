@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Http;
 /**
  * @phpstan-import-type LinkArray from Link
  */
-final class LaravelNews
+final readonly class LaravelNews
 {
     private const BASE_URL = 'https://laravel-news.com/api';
 
     public function __construct(
-        private readonly string $token
+        private string $token
     ) {
         $this->ensureTokenIsPresent();
     }
@@ -30,6 +30,7 @@ final class LaravelNews
     public function post(Link $link): Link
     {
         $response = Http::acceptJson()
+            ->contentType('application/json')
             ->baseUrl(self::BASE_URL)
             ->withToken($this->token)
             ->post(
@@ -64,9 +65,27 @@ final class LaravelNews
      */
     private function handleException(Response $response): never
     {
-        /** @var string $message */
-        $message = $response->json('message', 'Unexpected error while performing POST request.');
+        /** @var string|null $message */
+        $message = $response->json('message') ?? null;
 
-        throw new LaravelNewsException($message, $response->status());
+        $statusCode = $response->status();
+
+        if ($response->forbidden()) {
+            throw new LaravelNewsException(
+                $message ?? 'Forbidden. Check API token or permissions.',
+                $statusCode,
+            );
+        }
+
+        if ($response->status() === 422 && $response->json('errors')) {
+            throw new LaravelNewsException(
+                $message ?? 'Validation failed for the data.',
+                $statusCode,
+            );
+        }
+
+        throw new LaravelNewsException(
+            $message ?? 'An error occurred while communicating with Laravel News API.',
+            $statusCode);
     }
 }
